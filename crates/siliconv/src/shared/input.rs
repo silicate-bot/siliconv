@@ -14,6 +14,7 @@ pub enum RestartType {
 
 #[derive(Clone)]
 pub enum CustomAction {
+    Skip,
     Restart {
         restart_type: RestartType,
         new_seed: Option<u64>,

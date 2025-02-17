@@ -17,6 +17,8 @@ impl ReplayFeature {
 
     pub const FRAME_FIXES: u32       = 1 << 6;
 
+    pub const SKIP_INPUT: u32        = 1 << 7;
+
     
     pub const fn check(&self, feature: u32) -> bool {
         return (self.value & feature) != 0
@@ -27,5 +29,9 @@ impl ReplayFeature {
         if value {
             self.value |= feature;
         }
+    }
+
+    pub const fn new(value: u32) -> Self {
+        Self { value }
     }
 }
