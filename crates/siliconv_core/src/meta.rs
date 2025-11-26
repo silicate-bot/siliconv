@@ -48,3 +48,127 @@ pub trait Meta {
     where
         Self: Sized;
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    impl MetaEncodable for f64 {
+        fn encode(&self) -> String {
+            self.to_string()
+        }
+    }
+
+    impl MetaDecodable for f64 {
+        fn decode(encoded: String) -> Option<Self> {
+            encoded.parse::<f64>().ok()
+        }
+    }
+
+    impl MetaEncodable for u64 {
+        fn encode(&self) -> String {
+            self.to_string()
+        }
+    }
+
+    impl MetaDecodable for u64 {
+        fn decode(encoded: String) -> Option<Self> {
+            encoded.parse::<u64>().ok()
+        }
+    }
+
+    struct TestMeta {
+        pub tps: f64,
+    }
+
+    impl Meta for TestMeta {
+        fn fields(&self) -> HashMap<String, MetaField<'_>> {
+            let mut map = HashMap::new();
+            let tps_field = MetaField {
+                encode_fn: Box::new(|| self.tps.encode()),
+            };
+            map.insert("tps".to_string(), tps_field);
+            map
+        }
+
+        fn from_fields(fields: HashMap<String, MetaField<'_>>) -> Self {
+            let tps = fields
+                .get("tps")
+                .map_or(240.0, |t| t.decode::<f64>(t.encode()).unwrap_or(240.0));
+            TestMeta { tps }
+        }
+    }
+
+    struct OtherTestMeta {
+        pub tps: f32,
+        pub seed: u64,
+    }
+
+    impl Meta for OtherTestMeta {
+        fn fields(&self) -> HashMap<String, MetaField<'_>> {
+            let mut map = HashMap::new();
+            let tps_field = MetaField {
+                encode_fn: Box::new(|| (f64::from(self.tps)).encode()),
+            };
+            let seed_field = MetaField {
+                encode_fn: Box::new(|| self.seed.to_string()),
+            };
+            map.insert("tps".to_string(), tps_field);
+            map.insert("seed".to_string(), seed_field);
+            map
+        }
+
+        fn from_fields(fields: HashMap<String, MetaField<'_>>) -> Self {
+            #[allow(clippy::cast_possible_truncation)]
+            let tps = fields.get("tps").map_or(240.0, |t| {
+                t.decode::<f64>(t.encode()).unwrap_or(240.0) as f32
+            });
+            let seed = fields
+                .get("seed")
+                .map_or(2137, |t| t.decode::<u64>(t.encode()).unwrap_or(2137));
+            OtherTestMeta { tps, seed }
+        }
+    }
+
+    #[test]
+    fn test_meta_field_encode_decode() {
+        let value: f64 = 60.0;
+        let meta_field = MetaField {
+            encode_fn: Box::new(|| value.encode()),
+        };
+
+        let encoded = meta_field.encode();
+
+        let decoded: f64 = meta_field.decode(encoded).unwrap();
+        assert!(decoded.eq(&value));
+    }
+
+    #[test]
+    fn test_same_meta() {
+        let original_meta = TestMeta { tps: 60.0 };
+        let fields = original_meta.fields();
+        let reconstructed_meta = TestMeta::from_fields(fields);
+
+        assert!(original_meta.tps.eq(&reconstructed_meta.tps));
+    }
+
+    #[test]
+    fn test_different_meta() {
+        let original_meta = TestMeta { tps: 60.0 };
+        let other_meta = OtherTestMeta::from_fields(original_meta.fields());
+
+        assert!(other_meta.tps.eq(&60.0));
+        assert!(other_meta.seed.eq(&2137));
+    }
+
+    #[test]
+    fn test_different_meta_to_original() {
+        let original_meta = OtherTestMeta {
+            tps: 75.0,
+            seed: 1234,
+        };
+
+        let reconstructed_meta = TestMeta::from_fields(original_meta.fields());
+        assert!(reconstructed_meta.tps.eq(&75.0));
+    }
+}

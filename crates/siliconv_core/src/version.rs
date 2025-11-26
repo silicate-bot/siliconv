@@ -1,6 +1,7 @@
 //! Game version related structs.
 
 /// A game version.
+#[derive(Debug, Clone, Copy)]
 pub struct GameVersion {
     /// The major version number.
     ///
@@ -37,5 +38,46 @@ impl GameVersion {
 impl PartialEq for GameVersion {
     fn eq(&self, other: &Self) -> bool {
         self.is_universal() || other.is_universal() || self.major == other.major
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_game_version_equality() {
+        let v1 = GameVersion {
+            major: 19,
+            minor: 0,
+        };
+        let v2 = GameVersion {
+            major: 19,
+            minor: 130,
+        };
+        let v3 = GameVersion {
+            major: 20,
+            minor: 0,
+        };
+
+        assert_eq!(v1, v2);
+        assert_ne!(v1, v3);
+        assert_ne!(v2, v3);
+    }
+
+    #[test]
+    fn test_universal_version_equality() {
+        let universal = GameVersion::universal();
+        let v1 = GameVersion {
+            major: 19,
+            minor: 0,
+        };
+        let v2 = GameVersion {
+            major: 20,
+            minor: 130,
+        };
+
+        assert_eq!(universal, v1);
+        assert_eq!(universal, v2);
     }
 }

@@ -1,6 +1,7 @@
 //! Module containing replay formats.
 
 /// A replay format.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Format {
     //
     // === GENERIC FORMATS === //
