@@ -24,6 +24,8 @@ pub enum RestartType {
 
 /// An action in the replay.
 pub enum Action {
+    /// An empty action. Doesn't do anything.
+    Empty,
     /// A player action. Corresponds to a button press.
     Player {
         /// The button to press/release.
@@ -91,9 +93,9 @@ pub struct PlayerPosition {
     pub x: f64,
     /// The Y position of the player.
     pub y: f64,
-    /// The rotation of the player.
-    pub rotation: f64,
 
+    /// The rotation of the player.
+    pub rotation: Option<f64>,
     /// The X velocity of the player.
     pub vel_x: Option<f64>,
     /// The Y velocity of the player.

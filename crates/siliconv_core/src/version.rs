@@ -22,6 +22,12 @@ pub struct GameVersion {
 }
 
 impl GameVersion {
+    /// Create a new game version.
+    #[must_use]
+    pub fn new(major: u32, minor: u32) -> Self {
+        Self { major, minor }
+    }
+
     /// Check if this version is universal (major version 0).
     #[must_use]
     pub const fn is_universal(&self) -> bool {

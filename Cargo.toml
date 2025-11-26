@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/siliconv_core"]
+members = ["crates/siliconv_core", "crates/siliconv_formats", "crates/siliconv_macros"]
 
 [workspace.package]
 version = "0.1.0"

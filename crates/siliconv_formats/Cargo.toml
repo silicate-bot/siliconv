@@ -1,0 +1,12 @@
+[package]
+name = "siliconv_formats"
+version.workspace = true
+edition.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+siliconv_core = { path = "../siliconv_core" }
+siliconv_macros = { path = "../siliconv_macros" }
+slc_oxide = "0.2.0"

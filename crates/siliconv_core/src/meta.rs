@@ -23,6 +23,16 @@ pub trait MetaDecodable {
 }
 
 impl<'a> MetaField<'a> {
+    /// Create a new metadata field from an encoding function.
+    pub fn new<F>(encode_fn: F) -> Self
+    where
+        F: Fn() -> String + 'a,
+    {
+        MetaField {
+            encode_fn: Box::new(encode_fn),
+        }
+    }
+
     #[must_use]
     /// Create a new metadata field from an encodable value.
     pub fn encode(&'a self) -> String {
@@ -49,33 +59,55 @@ pub trait Meta {
         Self: Sized;
 }
 
+// Implementations for common types
+
+macro_rules! impl_meta_for_num {
+    ($($t:ty),*) => {
+        $(
+            impl MetaEncodable for $t {
+                fn encode(&self) -> String {
+                    self.to_string()
+                }
+            }
+
+            impl MetaDecodable for $t {
+                fn decode(encoded: String) -> Option<Self> {
+                    encoded.parse::<$t>().ok()
+                }
+            }
+        )*
+    };
+}
+
+impl_meta_for_num!(u8, u16, u32, u64, i8, i16, i32, i64, f32, f64);
+
+impl MetaEncodable for String {
+    fn encode(&self) -> String {
+        self.clone()
+    }
+}
+
+impl MetaDecodable for String {
+    fn decode(encoded: String) -> Option<Self> {
+        Some(encoded)
+    }
+}
+
+impl MetaEncodable for () {
+    fn encode(&self) -> String {
+        String::new()
+    }
+}
+
+impl MetaDecodable for () {
+    fn decode(_encoded: String) -> Option<Self> {
+        Some(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    impl MetaEncodable for f64 {
-        fn encode(&self) -> String {
-            self.to_string()
-        }
-    }
-
-    impl MetaDecodable for f64 {
-        fn decode(encoded: String) -> Option<Self> {
-            encoded.parse::<f64>().ok()
-        }
-    }
-
-    impl MetaEncodable for u64 {
-        fn encode(&self) -> String {
-            self.to_string()
-        }
-    }
-
-    impl MetaDecodable for u64 {
-        fn decode(encoded: String) -> Option<Self> {
-            encoded.parse::<u64>().ok()
-        }
-    }
 
     struct TestMeta {
         pub tps: f64,
